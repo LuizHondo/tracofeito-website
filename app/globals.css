@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+/* Palette from the identity board: dark by default, light on system preference. */
+:root {
+	--background: oklch(0.15 0.004 75);
+	--card: oklch(0.2 0.005 75);
+	--card-muted: oklch(0.24 0.005 75);
+	--border: oklch(0.3 0.006 75);
+	--foreground: oklch(0.93 0.006 85);
+	--muted: oklch(0.68 0.008 80);
+	--primary: oklch(0.72 0.1 65);
+	--primary-fg: oklch(0.15 0.01 65);
+	--primary-soft: oklch(0.8 0.1 68);
+	--silver: oklch(0.82 0.008 85);
+	--success: oklch(0.7 0.12 150);
+	--destructive: oklch(0.64 0.19 25);
+	--destructive-fg: oklch(0.74 0.15 25);
+	--warning: oklch(0.8 0.13 80);
+	--cover-a: oklch(0.215 0.005 75);
+	--cover-b: oklch(0.18 0.005 75);
+	color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+	:root {
+		--background: oklch(0.97 0.004 85);
+		--card: oklch(0.995 0.002 85);
+		--card-muted: oklch(0.94 0.004 85);
+		--border: oklch(0.88 0.006 80);
+		--foreground: oklch(0.2 0.006 75);
+		--muted: oklch(0.45 0.008 80);
+		--primary: oklch(0.52 0.1 60);
+		--primary-fg: oklch(0.98 0.004 85);
+		--primary-soft: oklch(0.45 0.1 60);
+		--silver: oklch(0.6 0.008 80);
+		--success: oklch(0.55 0.12 150);
+		--destructive: oklch(0.52 0.19 25);
+		--destructive-fg: oklch(0.5 0.19 25);
+		--warning: oklch(0.55 0.13 80);
+		--cover-a: oklch(0.95 0.004 85);
+		--cover-b: oklch(0.92 0.004 85);
+		color-scheme: light;
+	}
+}
+
+@theme inline {
+	--color-background: var(--background);
+	--color-card: var(--card);
+	--color-card-muted: var(--card-muted);
+	--color-border: var(--border);
+	--color-foreground: var(--foreground);
+	--color-muted: var(--muted);
+	--color-primary: var(--primary);
+	--color-primary-fg: var(--primary-fg);
+	--color-primary-soft: var(--primary-soft);
+	--color-silver: var(--silver);
+	--color-success: var(--success);
+	--color-destructive: var(--destructive);
+	--color-destructive-fg: var(--destructive-fg);
+	--color-warning: var(--warning);
+	--font-display: var(--font-display), sans-serif;
+	--font-sans: var(--font-sans), system-ui, sans-serif;
+	--font-mono: var(--font-mono), monospace;
+}
+
+body {
+	background: var(--background);
+	color: var(--foreground);
+	font-family: var(--font-sans), system-ui, sans-serif;
+	line-height: 1.55;
+	overflow-x: hidden;
+}
+
+:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: 2px;
+}
+
+.font-display {
+	font-weight: 800;
+	letter-spacing: -0.03em;
+}
+
+.eyebrow {
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+	color: var(--silver);
+}
+
+.cover-bg {
+	background: repeating-linear-gradient(
+		135deg,
+		var(--cover-a) 0 1px,
+		var(--cover-b) 1px 8px
+	);
+}
+
+/* Rendered Markdown (lesson text blocks and editor preview). */
+.prose-tf > * + * {
+	margin-top: 1em;
+}
+.prose-tf h1,
+.prose-tf h2,
+.prose-tf h3 {
+	font-family: var(--font-display), sans-serif;
+	font-weight: 700;
+	letter-spacing: -0.015em;
+	line-height: 1.2;
+}
+.prose-tf h1 {
+	font-size: 1.6em;
+}
+.prose-tf h2 {
+	font-size: 1.35em;
+}
+.prose-tf h3 {
+	font-size: 1.15em;
+}
+.prose-tf ul {
+	list-style: disc;
+	padding-left: 1.4em;
+}
+.prose-tf ol {
+	list-style: decimal;
+	padding-left: 1.4em;
+}
+.prose-tf a {
+	color: var(--primary-soft);
+	text-decoration: underline;
+}
+.prose-tf code {
+	font-family: var(--font-mono), monospace;
+	font-size: 0.9em;
+	background: var(--card-muted);
+	padding: 0.1em 0.35em;
+	border-radius: 6px;
+}
+.prose-tf blockquote {
+	border-left: 3px solid var(--border);
+	padding-left: 1em;
+	color: var(--muted);
+}
