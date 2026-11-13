@@ -1,20 +1,11 @@
 import { Episodes } from "../../components/Episodes";
-import { podcastUrl } from "../../lib/podcast";
+import { firstEpisodes, podcastUrl } from "../../lib/podcast";
 
 export const metadata = { title: "Podcast — Traço Feito" };
+export const dynamic = "force-dynamic";
 
-const hosts = [
-	{
-		name: "Kassini",
-		bio: "Ilustrador e apresentador do Traço Feito. Bio em breve.",
-	},
-	{
-		name: "Samuel",
-		bio: "Ilustrador e apresentador do Traço Feito. Bio em breve.",
-	},
-];
-
-export default function Podcast() {
+export default async function Podcast() {
+	const episodes = await firstEpisodes();
 	return (
 		<main className="mx-auto flex max-w-[1320px] flex-col gap-16 px-[clamp(16px,4vw,56px)] pt-14 pb-24 text-[17px]">
 			<section aria-labelledby="podcast" className="flex flex-col gap-7">
@@ -41,30 +32,28 @@ export default function Podcast() {
 					Conversas sobre tudo com artistas convidados diferentes a cada
 					episódio.
 				</p>
-				<Episodes />
-			</section>
-
-			<section
-				aria-labelledby="hosts"
-				className="flex flex-col gap-7 border-t border-border pt-14"
-			>
-				<h2
-					id="hosts"
-					className="font-display text-[clamp(36px,4vw,48px)] leading-none"
-				>
-					Apresentadores
-				</h2>
-				<div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,320px),1fr))] gap-6">
-					{hosts.map((h) => (
-						<div
-							key={h.name}
-							className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-6"
+				{!episodes ? (
+					<p className="rounded-2xl border border-border bg-card p-8 text-muted">
+						Não conseguimos carregar os episódios agora. Enquanto isso, dá para
+						assistir{" "}
+						<a
+							href={podcastUrl}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="text-primary-soft"
 						>
-							<h3 className="font-display text-2xl leading-tight">{h.name}</h3>
-							<p className="text-muted">{h.bio}</p>
-						</div>
-					))}
-				</div>
+							direto no canal do YouTube
+						</a>
+						.
+					</p>
+				) : episodes.items.length === 0 ? (
+					<p className="rounded-2xl border border-border bg-card p-8 text-muted">
+						Ainda não tem episódio por aqui. Volte em breve, tem conversa boa
+						chegando.
+					</p>
+				) : (
+					<Episodes initial={episodes} />
+				)}
 			</section>
 		</main>
 	);
