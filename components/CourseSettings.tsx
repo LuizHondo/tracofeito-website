@@ -1,14 +1,17 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	type Course,
 	calls,
 	errorMessage,
 	money,
 	type PaymentType,
+	type Tag,
 } from "../lib/api";
 import { parseReais } from "../lib/studio";
 import { Button, Field, useToast } from "./ui";
+
+const MAX_TAGS = 3;
 
 /** Create (no `course`) or edit a course's title, description, cover, base price, payment type and published state. */
 export function CourseSettings({
@@ -25,6 +28,16 @@ export function CourseSettings({
 	const [paymentType, setPaymentType] = useState<PaymentType>(
 		course?.paymentType ?? "subscription",
 	);
+
+	// Tags are set on an existing course (PATCH `tagSlugs`); the list is the API's.
+	const [tags, setTags] = useState<Tag[]>([]);
+	const [picked, setPicked] = useState<string[]>(
+		course?.tags?.map((t) => t.slug) ?? [],
+	);
+	useEffect(() => {
+		if (course) calls.tags().then(setTags, () => {});
+	}, [course]);
+	const full = picked.length >= MAX_TAGS;
 
 	async function submit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault();
@@ -46,6 +59,7 @@ export function CourseSettings({
 			baseMonthlyCents: cents,
 			paymentType: v.paymentType as PaymentType,
 			...(course && { published: v.published === "on" }),
+			...(course && tags.length > 0 && { tagSlugs: picked }),
 		};
 		try {
 			const saved = course
@@ -105,6 +119,47 @@ export function CourseSettings({
 					{ value: "one_time", label: "Pagamento único" },
 				]}
 			/>
+			{course && tags.length > 0 && (
+				<fieldset
+					aria-describedby="tags-hint"
+					className="m-0 flex flex-col gap-1.5 border-0 p-0"
+				>
+					<legend className="mb-1.5 text-sm font-medium">
+						Tags ({picked.length} de {MAX_TAGS})
+					</legend>
+					<div className="flex flex-wrap gap-x-5">
+						{tags.map((t) => {
+							const on = picked.includes(t.slug);
+							return (
+								<label
+									key={t.slug}
+									className={`flex min-h-11 items-center gap-2.5 text-[15px] ${!on && full ? "text-muted" : ""}`}
+								>
+									<input
+										type="checkbox"
+										checked={on}
+										disabled={!on && full}
+										onChange={() =>
+											setPicked(
+												on
+													? picked.filter((s) => s !== t.slug)
+													: [...picked, t.slug],
+											)
+										}
+										className="size-5 accent-[var(--primary)]"
+									/>
+									{t.name}
+								</label>
+							);
+						})}
+					</div>
+					<span id="tags-hint" className="text-[13px] text-muted">
+						{full
+							? `Limite de ${MAX_TAGS} tags atingido. Desmarque uma para trocar.`
+							: `Escolha até ${MAX_TAGS} tags para o curso aparecer nos filtros do catálogo.`}
+					</span>
+				</fieldset>
+			)}
 			{course && (
 				<label className="flex min-h-11 items-center gap-3 text-[15px]">
 					<input
