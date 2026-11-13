@@ -1,8 +1,8 @@
 "use client";
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { AdminShell } from "../../../components/admin";
 import { useRequireUser } from "../../../components/Me";
-import { Badge, Button } from "../../../components/ui";
+import { Badge, Button, ConfirmDialog } from "../../../components/ui";
 import {
 	type AdminUser,
 	calls,
@@ -17,45 +17,6 @@ const roles: { value: Role; label: string }[] = [
 ];
 const field =
 	"min-h-11 rounded-xl border border-border bg-background px-3.5 text-[15px] disabled:opacity-50";
-
-function ConfirmSuspend({
-	user,
-	onCancel,
-	onConfirm,
-}: {
-	user: AdminUser;
-	onCancel: () => void;
-	onConfirm: () => void;
-}) {
-	const ref = useRef<HTMLDialogElement>(null);
-	useEffect(() => ref.current?.showModal(), []);
-	return (
-		<dialog
-			ref={ref}
-			role="alertdialog"
-			aria-labelledby="sus-t"
-			aria-describedby="sus-d"
-			onClose={onCancel}
-			className="m-auto w-[min(92vw,440px)] rounded-2xl border border-border bg-card p-6 text-foreground backdrop:bg-black/60"
-		>
-			<h2 id="sus-t" className="font-display mb-2 text-2xl font-bold">
-				Suspender @{user.username}?
-			</h2>
-			<p id="sus-d" className="mb-6 text-muted">
-				As sessões dessa pessoa terminam agora e o login fica bloqueado até você
-				restaurar a conta.
-			</p>
-			<div className="flex justify-end gap-3">
-				<Button variant="secondary" onClick={onCancel}>
-					Cancelar
-				</Button>
-				<Button variant="danger" onClick={onConfirm}>
-					Suspender
-				</Button>
-			</div>
-		</dialog>
-	);
-}
 
 export default function AdminUsers() {
 	const me = useRequireUser();
@@ -78,18 +39,7 @@ export default function AdminUsers() {
 		return () => clearTimeout(t);
 	}, [isAdmin, q, role]);
 
-	if (!me) return null;
-	if (!isAdmin)
-		return (
-			<main className="mx-auto max-w-xl px-4 py-24 text-center">
-				<h1 className="font-display mb-4 text-[40px] leading-none">
-					Página não encontrada
-				</h1>
-				<Link href="/" className="text-primary-soft">
-					Voltar ao catálogo
-				</Link>
-			</main>
-		);
+	if (!me || !isAdmin) return <AdminShell title="Usuários">{null}</AdminShell>;
 
 	const apply = (id: string, p: Partial<AdminUser>) =>
 		setUsers((u) => u?.map((x) => (x.id === id ? { ...x, ...p } : x)) ?? null);
@@ -108,8 +58,7 @@ export default function AdminUsers() {
 	}
 
 	return (
-		<main className="mx-auto flex max-w-[1100px] flex-col gap-6 px-[clamp(16px,3vw,32px)] py-10 text-sm">
-			<h1 className="font-display text-[40px] leading-none">Usuários</h1>
+		<AdminShell title="Usuários">
 			<div className="flex flex-wrap gap-3">
 				<input
 					type="search"
@@ -232,8 +181,9 @@ export default function AdminUsers() {
 				</p>
 			)}
 			{confirm && (
-				<ConfirmSuspend
-					user={confirm}
+				<ConfirmDialog
+					title={`Suspender @${confirm.username}?`}
+					action="Suspender"
 					onCancel={() => setConfirm(null)}
 					onConfirm={() => {
 						const u = confirm;
@@ -242,8 +192,11 @@ export default function AdminUsers() {
 							suspendedAt: new Date().toISOString(),
 						});
 					}}
-				/>
+				>
+					As sessões dessa pessoa terminam agora e o login fica bloqueado até
+					você restaurar a conta.
+				</ConfirmDialog>
 			)}
-		</main>
+		</AdminShell>
 	);
 }
