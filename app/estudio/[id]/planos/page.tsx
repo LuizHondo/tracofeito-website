@@ -1,5 +1,4 @@
 "use client";
-import { planTotalCents } from "../../../../lib/shared/index.ts";
 import { useState } from "react";
 import { useCourse } from "../../../../components/course-ctx";
 import { useLoad } from "../../../../components/studio";
@@ -11,6 +10,7 @@ import {
 	type Plan,
 	planLabel,
 } from "../../../../lib/api";
+import { planTotalCents } from "../../../../lib/shared/index.ts";
 import { parseReais } from "../../../../lib/studio";
 
 export default function Plans() {

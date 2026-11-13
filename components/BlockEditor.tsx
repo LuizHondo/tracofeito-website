@@ -1,8 +1,8 @@
 "use client";
-import { type BlockType, blockSchema, youtubeId } from "../lib/shared/index.ts";
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as tus from "tus-js-client";
 import { ApiError, calls, errorMessage, type Video } from "../lib/api";
+import { type BlockType, blockSchema, youtubeId } from "../lib/shared/index.ts";
 import { Markdown } from "./blocks";
 import { Button, Field, ProgressBar } from "./ui";
 
@@ -412,7 +412,7 @@ function VideoFields({
 		}
 	}
 
-	async function useYoutube() {
+	async function applyYoutube() {
 		const id = youtubeId(link);
 		if (!id)
 			return setLinkError("Cole um link do YouTube, como https://youtu.be/…");
@@ -492,7 +492,7 @@ function VideoFields({
 						placeholder="https://www.youtube.com/watch?v=…"
 					/>
 				</div>
-				<Button variant="secondary" disabled={!link} onClick={useYoutube}>
+				<Button variant="secondary" disabled={!link} onClick={applyYoutube}>
 					Usar link
 				</Button>
 			</div>

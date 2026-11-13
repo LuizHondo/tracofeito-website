@@ -39,7 +39,7 @@ test("youtubeId parses common link shapes", () => {
 		assert.equal(youtubeId(l), id);
 	for (const l of [
 		"https://vimeo.com/123",
-		"https://evil.com/watch?v=" + id,
+		`https://evil.com/watch?v=${id}`,
 		"nope",
 	])
 		assert.equal(youtubeId(l), null);
