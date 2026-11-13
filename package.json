@@ -4,6 +4,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "next dev",
+		"mock": "node mock-api.ts",
 		"build": "next build",
 		"start": "next start",
 		"test": "node --test lib/*.test.ts lib/shared/*.test.ts",
