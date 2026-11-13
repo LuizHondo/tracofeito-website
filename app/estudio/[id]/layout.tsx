@@ -17,6 +17,7 @@ const tabs = [
 	["cupons", "Cupons"],
 	["vendas", "Página de vendas"],
 	["aulas", "Aulas"],
+	["feedback", "Feedback"],
 ] as const;
 
 function Editor({ children }: { children: ReactNode }) {

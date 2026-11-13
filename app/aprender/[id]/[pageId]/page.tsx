@@ -3,6 +3,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BlockView } from "../../../../components/blocks";
+import { Comments } from "../../../../components/Comments";
+import { FeedbackForm } from "../../../../components/FeedbackForm";
 import { useRequireUser } from "../../../../components/Me";
 import { Button, ProgressBar, useToast } from "../../../../components/ui";
 import {
@@ -278,6 +280,8 @@ export default function Lesson() {
 							<span />
 						)}
 					</div>
+					{content.nextId === null && <FeedbackForm courseId={id} />}
+					<Comments key={pageId} courseId={id} pageId={pageId} me={me} />
 				</article>
 			</main>
 		</div>
