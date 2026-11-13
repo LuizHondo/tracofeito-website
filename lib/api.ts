@@ -9,7 +9,35 @@ export type Me = {
 	bio: string;
 	role: Role;
 	emailVerified?: boolean;
+	avatarUrl?: string | null;
+	socialLinks?: SocialLink[];
 };
+
+export type SocialKind =
+	| "instagram"
+	| "youtube"
+	| "artstation"
+	| "behance"
+	| "twitter"
+	| "tiktok"
+	| "website"
+	| "other";
+export type SocialLink = { kind: SocialKind; url: string };
+/** Display names for the social networks the API accepts. */
+export const socialLabels: Record<SocialKind, string> = {
+	instagram: "Instagram",
+	youtube: "YouTube",
+	artstation: "ArtStation",
+	behance: "Behance",
+	twitter: "X (Twitter)",
+	tiktok: "TikTok",
+	website: "Site",
+	other: "Outro",
+};
+export const MAX_SOCIAL_LINKS = 8;
+
+/** `id` is only needed (and only used) by the admin tag screen. */
+export type Tag = { id?: string; slug: string; name: string };
 
 export type CourseCard = {
 	id: string;
@@ -18,6 +46,14 @@ export type CourseCard = {
 	creator: string;
 	featured: boolean;
 	startingPriceCents: number;
+	tags?: Tag[];
+};
+export type CreatorProfile = {
+	username: string;
+	bio: string;
+	avatarUrl: string | null;
+	socialLinks: SocialLink[];
+	courses: CourseCard[];
 };
 export type Catalog = { featured: CourseCard[]; courses: CourseCard[] };
 
@@ -33,7 +69,8 @@ export type Course = {
 	paymentType: PaymentType;
 	published: boolean;
 	featured: boolean;
-	owner: { username: string; bio: string };
+	owner: { username: string; bio: string; avatarUrl?: string | null };
+	tags?: Tag[];
 };
 /** `_count.blocks` counts only the selling page's blocks. */
 export type StudioCourse = Course & {
@@ -69,7 +106,51 @@ export type Page = {
 	slug: string;
 	position: number;
 };
-export type Selling = { course: Course; blocks: Block[]; plans: Plan[] };
+/** Public lesson titles in tree order; no content. */
+export type OutlineItem = {
+	id: string;
+	parentId: string | null;
+	title: string;
+	position: number;
+};
+export type Selling = {
+	course: Course;
+	blocks: Block[];
+	plans: Plan[];
+	outline?: OutlineItem[];
+};
+export type Feedback = {
+	id: string;
+	text: string;
+	createdAt: string;
+	author: { username: string };
+};
+export type FeedbackList = { items: Feedback[]; count: number };
+export type MyFeedback = { id: string; text: string; createdAt: string };
+
+/** Linked platform users carry `userId` and `username`; guests only `name`. */
+export type Participant = { userId?: string; username?: string; name: string };
+export type Episode = {
+	videoId: string;
+	title: string;
+	publishedAt: string;
+	thumbnailUrl: string;
+	participants: Participant[];
+};
+export type EpisodeDetail = Episode & { description: string };
+export type EpisodePage = { items: Episode[]; nextCursor: string | null };
+export type SyncResult = { created: number; updated: number; removed: number };
+
+/** Top-level comments carry `replies`; a reply never has its own. */
+export type Comment = {
+	id: string;
+	body: string;
+	createdAt: string;
+	deleted: boolean;
+	author: { username: string; role: Role };
+	replies?: Comment[];
+};
+export type CommentPage = { items: Comment[]; nextCursor: string | null };
 export type PageContent = {
 	page: Page;
 	blocks: Block[];
@@ -157,11 +238,12 @@ export type Subscriber = {
 export type PayoutStatus = "none" | "pending" | "enabled";
 
 export class ApiError extends Error {
-	constructor(
-		public status: number,
-		public code: string,
-	) {
+	status: number;
+	code: string;
+	constructor(status: number, code: string) {
 		super(code);
+		this.status = status;
+		this.code = code;
 	}
 }
 
@@ -181,7 +263,7 @@ export async function api<T = void>(
 		const data = await res.json().catch(() => ({}));
 		throw new ApiError(res.status, data.error ?? "unknown");
 	}
-	return (res.status === 204 ? undefined : await res.json()) as T;
+	return (await res.json().catch(() => undefined)) as T;
 }
 
 /** The signed-in user, or null for a visitor. */
@@ -237,6 +319,11 @@ const messages: Record<string, string> = {
 	refund_failed:
 		"O estorno não foi aceito pelo meio de pagamento (boleto não pode ser estornado).",
 	not_refundable: "Essa cobrança não pode ser estornada.",
+	tag_name_taken: "Já existe uma tag com esse nome",
+	youtube_unavailable:
+		"Não conseguimos falar com o YouTube agora. Tente de novo mais tarde.",
+	youtube_not_configured:
+		"A sincronização com o YouTube ainda não foi configurada.",
 };
 export const errorMessage = (e: unknown) =>
 	e instanceof ApiError
@@ -333,7 +420,43 @@ export const calls = {
 		api(`/admin/users/${id}/role`, "PUT", { role }),
 	suspend: (id: string) => api(`/admin/users/${id}/suspend`, "POST"),
 	restore: (id: string) => api(`/admin/users/${id}/restore`, "POST"),
+
+	creator: (username: string) =>
+		api<CreatorProfile>(`/creators/${encodeURIComponent(username)}`),
+
+	tags: () => api<Tag[]>("/tags"),
+	createTag: (name: string) => api<Tag>("/admin/tags", "POST", { name }),
+	renameTag: (id: string, name: string) =>
+		api<Tag>(`/admin/tags/${id}`, "PATCH", { name }),
+	deleteTag: (id: string) => api(`/admin/tags/${id}`, "DELETE"),
+
+	feedback: (id: string) => api<FeedbackList>(`/content/${id}/feedback`),
+	myFeedback: (id: string) => api<MyFeedback>(`/content/${id}/feedback/mine`),
+	sendFeedback: (id: string, text: string) =>
+		api<MyFeedback>(`/content/${id}/feedback`, "POST", { text }),
+	hideFeedback: (id: string, feedbackId: string) =>
+		api(`/courses/${id}/feedback/${feedbackId}/hide`, "POST"),
+
+	episodes: (cursor?: string) =>
+		api<EpisodePage>(`/podcast/episodes${q(cursor)}`),
+	syncPodcast: () => api<SyncResult>("/admin/podcast/sync", "POST"),
+	setParticipants: (
+		videoId: string,
+		list: ({ userId: string } | { name: string })[],
+	) => api(`/admin/podcast/episodes/${videoId}/participants`, "PUT", list),
+
+	comments: (id: string, pageId: string, cursor?: string) =>
+		api<CommentPage>(`/content/${id}/pages/${pageId}/comments${q(cursor)}`),
+	addComment: (id: string, pageId: string, body: string, parentId?: string) =>
+		api<Comment>(`/content/${id}/pages/${pageId}/comments`, "POST", {
+			body,
+			parentId,
+		}),
+	deleteComment: (id: string, commentId: string) =>
+		api(`/content/${id}/comments/${commentId}`, "DELETE"),
 };
 
+const q = (cursor?: string) =>
+	cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
 const blocksPath = (id: string, pageId: string | null) =>
 	pageId ? `/courses/${id}/pages/${pageId}/blocks` : `/courses/${id}/blocks`;

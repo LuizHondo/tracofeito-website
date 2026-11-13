@@ -9,6 +9,7 @@ import {
 	type TextareaHTMLAttributes,
 	useCallback,
 	useContext,
+	useEffect,
 	useId,
 	useRef,
 	useState,
@@ -158,6 +159,50 @@ export function Field({
 				</span>
 			) : null}
 		</div>
+	);
+}
+
+/** Modal confirmation for actions with no undo. Esc or "Cancelar" calls `onCancel`. */
+export function ConfirmDialog({
+	title,
+	children,
+	action,
+	onCancel,
+	onConfirm,
+}: {
+	title: string;
+	children: ReactNode;
+	action: string;
+	onCancel: () => void;
+	onConfirm: () => void;
+}) {
+	const ref = useRef<HTMLDialogElement>(null);
+	const id = useId();
+	useEffect(() => ref.current?.showModal(), []);
+	return (
+		<dialog
+			ref={ref}
+			role="alertdialog"
+			aria-labelledby={`${id}-t`}
+			aria-describedby={`${id}-d`}
+			onClose={onCancel}
+			className="m-auto w-[min(92vw,440px)] rounded-2xl border border-border bg-card p-6 text-base text-foreground backdrop:bg-black/60"
+		>
+			<h2 id={`${id}-t`} className="font-display mb-2 text-2xl font-bold">
+				{title}
+			</h2>
+			<p id={`${id}-d`} className="mb-6 text-muted">
+				{children}
+			</p>
+			<div className="flex justify-end gap-3">
+				<Button variant="secondary" onClick={onCancel}>
+					Cancelar
+				</Button>
+				<Button variant="danger" onClick={onConfirm}>
+					{action}
+				</Button>
+			</div>
+		</dialog>
 	);
 }
 
