@@ -53,7 +53,7 @@ function Featured({ c }: { c: Card }) {
 }
 
 const chip = (on: boolean) =>
-	`inline-flex min-h-11 items-center rounded-full border px-4 text-[15px] font-medium ${on ? "border-primary bg-primary/15 text-primary-soft" : "border-border text-muted"}`;
+	`squishy min-h-11 rounded-full px-4 text-[15px] font-medium ${on ? "squishy-primary" : "text-muted"}`;
 
 export default async function Home({
 	searchParams,
@@ -62,15 +62,18 @@ export default async function Home({
 }) {
 	const { tag: raw } = await searchParams;
 	const tag = typeof raw === "string" && raw ? raw : undefined;
-	const [found, tagList, episodes] = await Promise.all([
-		serverApi<Catalog>(
-			`/catalog${tag ? `?tag=${encodeURIComponent(tag)}` : ""}`,
-		),
+	const [found, filtered, tagList, episodes] = await Promise.all([
+		// Featured always comes from the unfiltered catalog so the hero never moves when a tag is picked.
+		serverApi<Catalog>("/catalog"),
+		tag ? serverApi<Catalog>(`/catalog?tag=${encodeURIComponent(tag)}`) : null,
 		// The filter is optional: without tags the catalog just has no chip row.
 		serverApi<Tag[]>("/tags").catch(() => null),
 		firstEpisodes(),
 	]);
-	const catalog = found ?? { featured: [], courses: [] };
+	const catalog = {
+		featured: found?.featured ?? [],
+		courses: (filtered ?? found)?.courses ?? [],
+	};
 	const tags = tagList ?? [];
 	return (
 		<>
@@ -95,20 +98,12 @@ export default async function Home({
 				)}
 
 				<section aria-labelledby="todos" className="flex flex-col gap-7">
-					<div className="flex flex-wrap items-baseline justify-between gap-3">
-						<h2
-							id="todos"
-							className="font-display text-[clamp(36px,4vw,48px)] leading-none"
-						>
-							Todos os cursos
-						</h2>
-						{catalog.courses.length > 0 && (
-							<span className="text-[15px] text-muted">
-								{catalog.courses.length}{" "}
-								{catalog.courses.length === 1 ? "curso" : "cursos"}
-							</span>
-						)}
-					</div>
+					<h2
+						id="todos"
+						className="font-display text-[clamp(36px,4vw,48px)] leading-none"
+					>
+						Todos os cursos
+					</h2>
 					{tags.length > 0 && (
 						<nav aria-label="Filtrar por tag" className="flex flex-wrap gap-2">
 							<Link
