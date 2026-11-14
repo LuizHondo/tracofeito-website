@@ -6,6 +6,7 @@ import { useRequireUser } from "./Me";
 
 const tabs = [
 	["/admin/usuarios", "Usuários"],
+	["/admin/cursos", "Cursos"],
 	["/admin/tags", "Tags"],
 	["/admin/podcast", "Podcast"],
 ] as const;
