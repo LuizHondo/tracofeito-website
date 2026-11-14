@@ -246,7 +246,7 @@ export default function Lesson() {
 							type="button"
 							onClick={toggle}
 							aria-pressed={isDone}
-							className={`flex min-h-12 items-center gap-2.5 rounded-xl px-[22px] text-[15px] font-semibold ${isDone ? "border border-success/50 bg-success/15 text-success" : "bg-primary text-primary-fg"}`}
+							className={`squishy min-h-12 gap-2.5 rounded-xl px-[22px] text-[15px] font-semibold ${isDone ? "squishy-success" : "squishy-primary"}`}
 						>
 							<svg
 								width="18"
@@ -263,7 +263,21 @@ export default function Lesson() {
 									strokeLinejoin="round"
 								/>
 							</svg>
-							{isDone ? "Concluída" : "Marcar como concluída"}
+							{/* Both labels share one grid cell so the button keeps the width of the longer one. */}
+							<span className="grid justify-items-start">
+								<span
+									className={`[grid-area:1/1] ${isDone ? "invisible" : ""}`}
+									aria-hidden={isDone}
+								>
+									Marcar como concluída
+								</span>
+								<span
+									className={`[grid-area:1/1] ${isDone ? "" : "invisible"}`}
+									aria-hidden={!isDone}
+								>
+									Concluída
+								</span>
+							</span>
 						</button>
 						{content.nextId ? (
 							<Link
