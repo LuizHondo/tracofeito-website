@@ -382,13 +382,13 @@ const routes: [string, RegExp, (c: Ctx) => unknown][] = [
 		/^\/catalog$/,
 		({ query }) => {
 			const tag = query.get("tag");
-			const list = courses
-				.filter(
-					(c) =>
-						c.published && (!tag || c.tags.some((t: Row) => t.slug === tag)),
-				)
-				.map(card);
-			return { featured: list.filter((c) => c.featured), courses: list };
+			const live = courses.filter((c) => c.published);
+			return {
+				featured: live.filter((c) => c.featured).map(card),
+				courses: live
+					.filter((c) => !tag || c.tags.some((t: Row) => t.slug === tag))
+					.map(card),
+			};
 		},
 	],
 	["GET", /^\/tags$/, () => tags],
@@ -818,6 +818,18 @@ const routes: [string, RegExp, (c: Ctx) => unknown][] = [
 
 	[
 		"GET",
+		/^\/admin\/courses$/,
+		() => courses.map((c) => ({ ...c, owner: { username: me.username } })),
+	],
+	[
+		"PUT",
+		/^\/admin\/courses\/([^/]+)\/featured$/,
+		({ p, body }) => {
+			find(courses, p[0]).featured = body.featured;
+		},
+	],
+	[
+		"GET",
 		/^\/admin\/users$/,
 		({ query }) => {
 			const q = (query.get("q") ?? "").toLowerCase();
@@ -868,6 +880,11 @@ const routes: [string, RegExp, (c: Ctx) => unknown][] = [
 		"POST",
 		/^\/admin\/podcast\/sync$/,
 		() => ({ created: 0, updated: episodes.length, removed: 0 }),
+	],
+	[
+		"PATCH",
+		/^\/admin\/podcast\/episodes\/([^/]+)$/,
+		({ p, body }) => Object.assign(find(episodes, p[0], "videoId"), body),
 	],
 	[
 		"PUT",

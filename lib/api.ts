@@ -128,8 +128,13 @@ export type Feedback = {
 export type FeedbackList = { items: Feedback[]; count: number };
 export type MyFeedback = { id: string; text: string; createdAt: string };
 
-/** Linked platform users carry `userId` and `username`; guests only `name`. */
-export type Participant = { userId?: string; username?: string; name: string };
+/** Linked platform users carry `userId` and `username`; guests only `name` and an optional `role` ("escritor"). */
+export type Participant = {
+	userId?: string;
+	username?: string;
+	name: string;
+	role?: string;
+};
 export type Episode = {
 	videoId: string;
 	title: string;
@@ -166,6 +171,10 @@ export type Video = { id: string; status: "processing" | "ready" | "failed" };
 export type VideoUpload = {
 	videoId: string;
 	upload: { url: string; headers: Record<string, string> };
+};
+/** Every course on the platform, whoever owns it; the owner is just the username. */
+export type AdminCourse = Omit<Course, "owner"> & {
+	owner: { username: string };
 };
 export type AdminUser = {
 	id: string;
@@ -416,6 +425,9 @@ export const calls = {
 		api<AdminUser[]>(
 			`/admin/users?q=${encodeURIComponent(q)}${role ? `&role=${role}` : ""}`,
 		),
+	adminCourses: () => api<AdminCourse[]>("/admin/courses"),
+	setFeatured: (id: string, featured: boolean) =>
+		api(`/admin/courses/${id}/featured`, "PUT", { featured }),
 	setRole: (id: string, role: Role) =>
 		api(`/admin/users/${id}/role`, "PUT", { role }),
 	suspend: (id: string) => api(`/admin/users/${id}/suspend`, "POST"),
@@ -439,10 +451,16 @@ export const calls = {
 
 	episodes: (cursor?: string) =>
 		api<EpisodePage>(`/podcast/episodes${q(cursor)}`),
+	episode: (videoId: string) =>
+		api<EpisodeDetail>(`/podcast/episodes/${videoId}`),
+	updateEpisode: (
+		videoId: string,
+		body: { title: string; description: string },
+	) => api<EpisodeDetail>(`/admin/podcast/episodes/${videoId}`, "PATCH", body),
 	syncPodcast: () => api<SyncResult>("/admin/podcast/sync", "POST"),
 	setParticipants: (
 		videoId: string,
-		list: ({ userId: string } | { name: string })[],
+		list: ({ userId: string } | { name: string; role?: string })[],
 	) => api(`/admin/podcast/episodes/${videoId}/participants`, "PUT", list),
 
 	comments: (id: string, pageId: string, cursor?: string) =>
