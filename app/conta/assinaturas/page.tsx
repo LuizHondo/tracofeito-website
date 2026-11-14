@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import { useRequireUser } from "../../../components/Me";
 import { useLoad } from "../../../components/studio";
-import { Badge, Button, useToast } from "../../../components/ui";
+import { Badge, Button, ConfirmDialog, useToast } from "../../../components/ui";
 import {
 	calls,
 	errorMessage,
@@ -23,6 +24,7 @@ const chargeLabel = {
 function Card({ sub, reload }: { sub: MySubscription; reload: () => void }) {
 	const toast = useToast();
 	const recurring = sub.expiresAt !== null;
+	const [confirming, setConfirming] = useState(false);
 	async function renew() {
 		try {
 			window.location.assign((await calls.renew(sub.course.id, {})).url);
@@ -31,12 +33,7 @@ function Card({ sub, reload }: { sub: MySubscription; reload: () => void }) {
 		}
 	}
 	async function cancel() {
-		if (
-			!window.confirm(
-				"Cancelar a renovação? Você mantém o acesso até a data de expiração.",
-			)
-		)
-			return;
+		setConfirming(false);
 		await calls.cancelSubscription(sub.id);
 		toast("Renovação cancelada");
 		reload();
@@ -67,11 +64,21 @@ function Card({ sub, reload }: { sub: MySubscription; reload: () => void }) {
 				<div className="flex flex-wrap gap-3">
 					<Button onClick={renew}>Renovar</Button>
 					{!sub.canceledAt && sub.warning !== "expired" && (
-						<Button variant="secondary" onClick={cancel}>
+						<Button variant="secondary" onClick={() => setConfirming(true)}>
 							Cancelar renovação
 						</Button>
 					)}
 				</div>
+			)}
+			{confirming && (
+				<ConfirmDialog
+					title="Cancelar a renovação?"
+					action="Cancelar renovação"
+					onCancel={() => setConfirming(false)}
+					onConfirm={cancel}
+				>
+					Você mantém o acesso até {date(sub.expiresAt)}.
+				</ConfirmDialog>
 			)}
 			<details>
 				<summary className="cursor-pointer text-muted">
