@@ -1,9 +1,11 @@
 import "./globals.css";
 import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
+import { ClickSounds } from "../components/ClickSounds";
 import { ExpiryBanner } from "../components/ExpiryBanner";
 import { Header } from "../components/Header";
 import { MeProvider } from "../components/Me";
+import { themeScript } from "../components/ThemeToggle";
 import { ToastProvider } from "../components/ui";
 
 const display = Bricolage_Grotesque({
@@ -21,10 +23,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 		<html
 			lang="pt-BR"
 			className={`${display.variable} ${sans.variable} ${mono.variable}`}
+			suppressHydrationWarning
 		>
+			<head>
+				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: constant inline theme bootstrap, no user input */}
+				<script dangerouslySetInnerHTML={{ __html: themeScript }} />
+			</head>
 			<body>
 				<MeProvider>
 					<ToastProvider>
+						<ClickSounds />
 						<Header />
 						<ExpiryBanner />
 						{children}

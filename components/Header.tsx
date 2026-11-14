@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { useMe } from "./Me";
+import { ThemeToggle } from "./ThemeToggle";
 import { Logo } from "./ui";
 
 const nav = [
@@ -56,7 +57,7 @@ export function Header() {
 			</Link>
 			<nav
 				aria-label="Principal"
-				className="flex flex-wrap gap-x-7 text-[15px] font-medium"
+				className="flex flex-wrap gap-x-3 gap-y-2 text-[15px] font-medium"
 			>
 				{nav.map((n) => {
 					const current =
@@ -67,83 +68,84 @@ export function Header() {
 						<Link
 							key={n.href}
 							href={n.href}
-							aria-current={
-								current && n.href !== "/#podcast" ? "page" : undefined
-							}
-							className={`border-b-2 py-2.5 ${current && n.href !== "/#podcast" ? "border-primary" : "border-transparent text-muted"}`}
+							aria-current={current ? "page" : undefined}
+							className={`squishy min-h-10 px-3.5 hover:text-foreground ${current ? "" : "text-muted"}`}
 						>
 							{n.label}
 						</Link>
 					);
 				})}
 			</nav>
-			<div className="relative min-h-11" ref={menu}>
-				{!ready ? null : me ? (
-					<>
-						<button
-							type="button"
-							aria-label="Menu da conta"
-							aria-expanded={open}
-							onClick={() => setOpen(!open)}
-							className="size-11 rounded-full border border-silver/60 bg-card-muted text-sm font-semibold"
+			<div className="flex items-center gap-2">
+				<ThemeToggle />
+				<div className="relative min-h-11" ref={menu}>
+					{!ready ? null : me ? (
+						<>
+							<button
+								type="button"
+								aria-label="Menu da conta"
+								aria-expanded={open}
+								onClick={() => setOpen(!open)}
+								className="squishy size-11 justify-center rounded-full text-sm font-semibold"
+							>
+								{initials}
+							</button>
+							{open && (
+								<div className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-card py-1 shadow-2xl">
+									<p className="truncate px-3 py-2 text-sm text-muted">
+										@{me.username}
+									</p>
+									{(me.role === "creator" || me.role === "admin") && (
+										<Link
+											href="/estudio"
+											className={item}
+											onClick={() => setOpen(false)}
+										>
+											Estúdio
+										</Link>
+									)}
+									{me.role === "admin" && (
+										<Link
+											href="/admin/usuarios"
+											className={item}
+											onClick={() => setOpen(false)}
+										>
+											Admin
+										</Link>
+									)}
+									<Link
+										href="/conta/assinaturas"
+										className={item}
+										onClick={() => setOpen(false)}
+									>
+										Minhas assinaturas
+									</Link>
+									<Link
+										href="/conta"
+										className={item}
+										onClick={() => setOpen(false)}
+									>
+										Editar perfil
+									</Link>
+									<button
+										type="button"
+										onClick={signOut}
+										className={`${item} w-full text-left`}
+									>
+										Sair
+									</button>
+								</div>
+							)}
+						</>
+					) : (
+						<Link
+							href={`/sign-in${path === "/" || path.startsWith("/sign-") ? "" : `?next=${encodeURIComponent(path)}`}`}
+							className="squishy squishy-primary min-h-11 px-[18px] text-[15px] font-semibold"
 						>
-							{initials}
-						</button>
-						{open && (
-							<div className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-card py-1 shadow-2xl">
-								<p className="truncate px-3 py-2 text-sm text-muted">
-									@{me.username}
-								</p>
-								{(me.role === "creator" || me.role === "admin") && (
-									<Link
-										href="/estudio"
-										className={item}
-										onClick={() => setOpen(false)}
-									>
-										Estúdio
-									</Link>
-								)}
-								{me.role === "admin" && (
-									<Link
-										href="/admin/usuarios"
-										className={item}
-										onClick={() => setOpen(false)}
-									>
-										Admin
-									</Link>
-								)}
-								<Link
-									href="/conta/assinaturas"
-									className={item}
-									onClick={() => setOpen(false)}
-								>
-									Minhas assinaturas
-								</Link>
-								<Link
-									href="/conta"
-									className={item}
-									onClick={() => setOpen(false)}
-								>
-									Editar perfil
-								</Link>
-								<button
-									type="button"
-									onClick={signOut}
-									className={`${item} w-full text-left`}
-								>
-									Sair
-								</button>
-							</div>
-						)}
-					</>
-				) : (
-					<Link
-						href={`/sign-in${path === "/" || path.startsWith("/sign-") ? "" : `?next=${encodeURIComponent(path)}`}`}
-						className="inline-flex min-h-11 items-center rounded-xl border border-border px-[18px] text-[15px] font-medium"
-					>
-						Entrar
-					</Link>
-				)}
+							Entrar
+						</Link>
+					)}
+				</div>
 			</div>
 		</header>
 	);

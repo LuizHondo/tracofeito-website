@@ -19,15 +19,14 @@ const cx = (...c: (string | false | undefined)[]) =>
 	c.filter(Boolean).join(" ");
 
 const buttonStyles = {
-	primary: "bg-primary text-primary-fg font-semibold",
-	secondary: "border border-border bg-transparent text-foreground font-medium",
-	danger:
-		"border border-destructive/50 bg-destructive/10 text-destructive-fg font-medium",
+	primary: "squishy squishy-primary font-semibold",
+	secondary: "squishy text-foreground font-medium",
+	danger: "squishy squishy-danger font-medium",
 	ghost: "text-foreground font-medium hover:bg-card-muted",
 } as const;
 type Variant = keyof typeof buttonStyles;
 const buttonBase =
-	"inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 text-[15px] disabled:cursor-not-allowed disabled:border disabled:border-border disabled:bg-card-muted disabled:text-muted";
+	"inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 text-[15px] disabled:cursor-not-allowed disabled:bg-card-muted disabled:text-muted disabled:shadow-none";
 
 export function Button({
 	variant = "primary",
