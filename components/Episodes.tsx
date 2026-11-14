@@ -26,7 +26,10 @@ export function Participants({ list }: { list: Participant[] }) {
 							{p.name}
 						</Link>
 					) : (
-						p.name
+						<>
+							{p.name}
+							{p.role && <span className="text-muted"> ({p.role})</span>}
+						</>
 					)}
 					{i < list.length - 1 && ","}
 				</li>
