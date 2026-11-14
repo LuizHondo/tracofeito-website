@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useMe } from "../../../components/Me";
 import { Badge, Button, Field, LinkButton } from "../../../components/ui";
@@ -116,6 +117,12 @@ export function PlanPicker({
 }) {
 	const [selected, setSelected] = useState(defaultPlan(plans)?.id);
 	const viewer = useViewer(courseId);
+	const router = useRouter();
+	// Subscribers land on their lesson; the sales page is only for buying.
+	const lessonId = typeof viewer === "object" ? viewer.lessonId : null;
+	useEffect(() => {
+		if (lessonId) router.replace(`/aprender/${courseId}/${lessonId}`);
+	}, [lessonId, courseId, router]);
 	const plan = plans.find((p) => p.id === selected);
 	return (
 		<aside
